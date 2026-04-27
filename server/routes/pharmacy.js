@@ -13,8 +13,28 @@ const isPharmacy = async (req, res, next) => {
     next();
 };
 
+// Middleware to check if pharmacy is approved by admin
+const isApproved = async (req, res, next) => {
+    try {
+        const pharmacy = await PharmacyProfile.findOne({ userId: req.user.id });
+        if (!pharmacy) {
+            return res.status(404).json({ message: 'Pharmacy profile not found.' });
+        }
+        if (!pharmacy.isApproved) {
+            return res.status(403).json({
+                message: 'Your pharmacy account is pending admin approval. You cannot perform this action yet.',
+                pendingApproval: true,
+            });
+        }
+        next();
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
 // Add Medicine
-router.post('/medicine', auth, isPharmacy, async (req, res) => {
+router.post('/medicine', auth, isPharmacy, isApproved, async (req, res) => {
     try {
         const { name, description, price, stock, category, image } = req.body;
         const pharmacy = await PharmacyProfile.findOne({ userId: req.user.id });
@@ -41,7 +61,7 @@ router.post('/medicine', auth, isPharmacy, async (req, res) => {
 });
 
 // Update Medicine Stock/Details
-router.put('/medicine/:id', auth, isPharmacy, async (req, res) => {
+router.put('/medicine/:id', auth, isPharmacy, isApproved, async (req, res) => {
     try {
         const { stock, price } = req.body;
         const medicine = await Medicine.findByIdAndUpdate(
@@ -58,7 +78,7 @@ router.put('/medicine/:id', auth, isPharmacy, async (req, res) => {
 });
 
 // Delete Medicine
-router.delete('/medicine/:id', auth, isPharmacy, async (req, res) => {
+router.delete('/medicine/:id', auth, isPharmacy, isApproved, async (req, res) => {
     try {
         await Medicine.findByIdAndDelete(req.params.id);
         res.json({ message: 'Medicine deleted' });
@@ -69,7 +89,7 @@ router.delete('/medicine/:id', auth, isPharmacy, async (req, res) => {
 });
 
 // Get My Medicines (with optional search)
-router.get('/my-medicines', auth, isPharmacy, async (req, res) => {
+router.get('/my-medicines', auth, isPharmacy, isApproved, async (req, res) => {
     try {
         const pharmacy = await PharmacyProfile.findOne({ userId: req.user.id });
         if (!pharmacy) {

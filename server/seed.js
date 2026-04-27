@@ -24,7 +24,8 @@ const seedData = async () => {
         const users = await User.create([
             { name: 'John Pharmacy', email: 'pharmacy@test.com', password: hashedPassword, role: 'pharmacy' },
             { name: 'Jane Customer', email: 'customer@test.com', password: hashedPassword, role: 'customer' },
-            { name: 'Mike Delivery', email: 'delivery@test.com', password: hashedPassword, role: 'delivery' }
+            { name: 'Mike Delivery', email: 'delivery@test.com', password: hashedPassword, role: 'delivery' },
+            { name: 'Platform Admin', email: 'admin@pharma.com', password: hashedPassword, role: 'admin' }
         ]);
 
         const pharmacyUser = users[0];
@@ -36,7 +37,11 @@ const seedData = async () => {
             pharmacyName: 'Central City Pharmacy',
             address: '123 Main St, New York, NY',
             contactNumber: '555-0123',
-            isApproved: true
+            location: {
+                type: 'Point',
+                coordinates: [-74.0060, 40.7128] // [longitude, latitude]
+            },
+            isApproved: false,   // must be approved by admin first
         });
 
         // Create Medicines
@@ -80,6 +85,7 @@ const seedData = async () => {
         console.log('Pharmacy: pharmacy@test.com / password123');
         console.log('Customer: customer@test.com / password123');
         console.log('Delivery: delivery@test.com / password123');
+        console.log('Admin: admin@pharma.com / password123');
 
         process.exit(0);
     } catch (err) {
